@@ -39,4 +39,18 @@ public static class RevitSolid
 		return result;
 	}
 
+	public static Solid FromLineCurveLoopAndLength
+	(
+		ScriptManager scriptManager,
+		Line line,
+		CurveLoop curveLoop,
+		double lengthOnInternalUnits
+	)
+	{
+		return GeometryCreationUtilities.CreateExtrusionGeometry(
+			new List<CurveLoop> { curveLoop },
+			line.Direction,
+			lengthOnInternalUnits
+			);
+	}
 }

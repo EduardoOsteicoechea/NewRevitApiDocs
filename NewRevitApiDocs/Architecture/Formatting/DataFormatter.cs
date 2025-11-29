@@ -58,6 +58,18 @@ internal class DataFormatter
 		return Collection(data, ElementIdData);
 	}
 
+	public static string ColorData(Color data, int index)
+	{
+		if (data == null) return "[null]";
+
+		return $"({index}, ({nameof(data.Red)}: {data.Red}, {nameof(data.Green)}: {data.Green}, {nameof(data.Blue)}: {data.Blue})), ";
+	}
+
+	public static string ColorsData(List<Color> data)
+	{
+		return Collection(data, ColorData);
+	}
+
 	public static string MaterialData(Material data, int index)
 	{
 		if (data == null) return "[null]";

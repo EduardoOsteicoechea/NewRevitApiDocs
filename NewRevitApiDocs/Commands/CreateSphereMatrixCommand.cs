@@ -3,11 +3,11 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
 [Transaction(TransactionMode.Manual)]
-public class CreateSphereOnInternalOriginCommand : IExternalCommand
+public class CreateSphereMatrixCommand : IExternalCommand
 {
 	public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
 	{
-		var workflow = new CreateSphereOnInternalOrigin(
+		var workflow = new CreateSphereMatrix(
 			commandData.Application.ActiveUIDocument.Document, 
 			TransactionOptions.SingleTransaction, 
 			LogOptions.FullLog,
