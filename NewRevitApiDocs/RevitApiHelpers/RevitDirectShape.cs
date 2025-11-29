@@ -13,23 +13,7 @@ public static class RevitDirectShape
 
 		ElementId genericModelsCategoryId = RevitCategory.GetGenericModelCategoryId(scriptManager, doc);
 
-		using (Transaction transaction = new Transaction(doc, "Model Solid in Revit"))
-		{
-			try
-			{
-				transaction.Start();
-
-				directShape = SphereFromSphereSolid(scriptManager, doc, genericModelsCategoryId, solid);
-
-				transaction.Commit();
-			}
-			catch (Exception ex)
-			{
-				scriptManager.SetError($"{ex.Message}\n{ex.StackTrace}");
-
-				transaction.RollBack();
-			}
-		}
+		directShape = SphereFromSphereSolid(scriptManager, doc, genericModelsCategoryId, solid);
 
 		return directShape;
 	}
@@ -88,7 +72,7 @@ public static class RevitDirectShape
 		return directShape;
 	}
 
-	public static void PaintShapeFaces
+	public static void PaintShapeFacesOnNewTransaction
 	(
 		ScriptManager scriptManager,
 		Document doc,
@@ -96,41 +80,25 @@ public static class RevitDirectShape
 		Material material
 	)
 	{
-		using (Transaction transaction = new Transaction(doc, "Painting Solid in Revit"))
+		doc.Regenerate();
+
+		GeometryElement geometryElement = directShape.get_Geometry(RevitGeometryOptions.Full());
+
+		foreach (GeometryObject geometryObject in geometryElement)
 		{
-			try
+			if (geometryObject is Solid solid)
 			{
-				transaction.Start();
-
-				doc.Regenerate();
-
-				GeometryElement geometryElement = directShape.get_Geometry(RevitGeometryOptions.Full());
-
-				foreach (GeometryObject geometryObject in geometryElement)
+				foreach (Face face in solid.Faces)
 				{
-					if (geometryObject is Solid solid)
+					try
 					{
-						foreach (Face face in solid.Faces)
-						{
-							try
-							{
-								doc.Paint(directShape.Id, face, material.Id);
-							}
-							catch (Exception ex)
-							{
-								scriptManager.SetError($"{ex.Message}\n{ex.StackTrace}");
-							}
-						}
+						doc.Paint(directShape.Id, face, material.Id);
+					}
+					catch (Exception ex)
+					{
+						scriptManager.SetError($"{ex.Message}\n{ex.StackTrace}");
 					}
 				}
-
-				transaction.Commit();
-			}
-			catch (Exception ex)
-			{
-				scriptManager.SetError($"{ex.Message}\n{ex.StackTrace}");
-
-				transaction.RollBack();
 			}
 		}
 	}

@@ -11,11 +11,11 @@ public static class DtoFormater
 
 		printer.Append($"{type.Name}");
 
-		var properties = type.GetProperties().Where(a => Attribute.IsDefined(a, typeof(PrintAttribute)));
+		var properties = type.GetProperties().Where(a => Attribute.IsDefined(a, typeof(Print)));
 
 		foreach (var property in properties) 
 		{
-			var attribute = (PrintAttribute)property.GetCustomAttributes(typeof(PrintAttribute), false).FirstOrDefault();
+			var attribute = (Print)property.GetCustomAttributes(typeof(Print), false).FirstOrDefault();
 
 			object rawValue = property.GetValue(item);
 
@@ -43,7 +43,7 @@ public static class DtoFormater
 				displayValue = rawValue?.ToString() ?? "null";
 			}
 
-			printer.AppendLine($"{property.Name}: {displayValue}");
+			printer.AppendLine($"{property.Name}:\n{displayValue}");
 			printer.AppendLine();
 		}
 

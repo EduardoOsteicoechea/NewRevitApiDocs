@@ -10,7 +10,8 @@ public class CreateSphereOnInternalOriginCommand : IExternalCommand
 		var workflow = new CreateSphereOnInternalOrigin(
 			commandData.Application.ActiveUIDocument.Document, 
 			TransactionOptions.SingleTransaction, 
-			LogOptions.FullLog
+			LogOptions.FullLog,
+			LogFlowOptions.LogFinalOnly
 			);
 
 		workflow.Run();

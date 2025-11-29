@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Text;
 
-
 public static class LogService
 {
 	public static bool IsEnabled { get; } = true;

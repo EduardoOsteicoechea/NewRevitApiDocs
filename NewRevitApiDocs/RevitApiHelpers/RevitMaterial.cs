@@ -12,23 +12,7 @@ public static class RevitMaterial
 	{
 		ElementId result = null;
 
-		using (Transaction transaction = new Transaction(doc, $"Creating {materialName} material"))
-		{
-			try
-			{
-				transaction.Start();
-
-				result = Material.Create(doc, materialName);
-
-				transaction.Commit();
-			}
-			catch (Exception ex)
-			{
-				transaction.RollBack();
-
-				throw;
-			}
-		}
+		result = Material.Create(doc, materialName);
 
 		return result;
 	}
@@ -44,29 +28,13 @@ public static class RevitMaterial
 	{
 		Material result = null;
 
-		using (Transaction transaction = new Transaction(doc, $"Assigning material {materialId.ToString()} appereance"))
+		result = doc.GetElement(materialId) as Material;
+
+		if (result != null)
 		{
-			try
-			{
-				transaction.Start();
+			result.Color = color;
 
-				result = doc.GetElement(materialId) as Material;
-
-				if (result != null)
-				{
-					result.Color = color;
-
-					result.Transparency = transparency;
-				}
-
-				transaction.Commit();
-			}
-			catch (Exception ex)
-			{
-				transaction.RollBack();
-
-				throw;
-			}
+			result.Transparency = transparency;
 		}
 
 		return result;

@@ -4,18 +4,21 @@ public class WorkflowBase<DTOBase> where DTOBase : new()
 {
 	public DTOBase Dto { get; set; }
 	public LogOptions LogOptions { get; set; }
+	public LogFlowOptions LogFlowOptions { get; set; }
 	public TransactionOptions TransactionOptions { get; set; }
 	public ScriptManager Sm { get; set; }
 	public Document Doc { get; set; }
 	public Dictionary<Action, ItemTransactionOptions> Actions { get; set; } = new Dictionary<Action, ItemTransactionOptions>();
 
-	public WorkflowBase(Document doc, TransactionOptions transactionOptions = TransactionOptions.SingleTransaction, LogOptions logOptions = LogOptions.DoNotLog)
+	public WorkflowBase(Document doc, TransactionOptions transactionOptions = TransactionOptions.SingleTransaction, LogOptions logOptions = LogOptions.DoNotLog, LogFlowOptions logFlowOptions = LogFlowOptions.LogAll)
 	{
 		Dto = new DTOBase();
 		Doc = doc;
 		TransactionOptions = transactionOptions;
 		LogOptions = logOptions;
+		LogFlowOptions = logFlowOptions;
 		Sm = new ScriptManager();
+		LogFlowOptions = logFlowOptions;
 	}
 
 	public void Add(Action action, ItemTransactionOptions transactionOptions = ItemTransactionOptions.Transactionless)
@@ -188,7 +191,7 @@ public class WorkflowBase<DTOBase> where DTOBase : new()
 		}
 	}
 
-	public virtual void ActionManager(string methodName, System.Action action, bool isFinal = false)
+	public virtual void ActionManager(string methodName, Action action, bool isFinal = false)
 	{
 		string logMessage = "";
 
@@ -196,7 +199,7 @@ public class WorkflowBase<DTOBase> where DTOBase : new()
 		{
 			action();
 
-			if (LogOptions.Equals(LogOptions.LogNamesOnly))
+			if (LogFlowOptions.Equals(LogFlowOptions.LogFinalOnly))
 			{
 				if (isFinal)
 				{

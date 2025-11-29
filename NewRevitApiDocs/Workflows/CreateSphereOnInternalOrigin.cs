@@ -2,16 +2,16 @@
 
 public class CreateSphereOnInternalOrigin : WorkflowBase<CreateSphereOnInternalOriginDto>
 {
-	public CreateSphereOnInternalOrigin(Document doc, TransactionOptions transactionOptions = TransactionOptions.SingleTransaction, LogOptions logOptions = LogOptions.DoNotLog) : base(doc, transactionOptions, logOptions)
+	public CreateSphereOnInternalOrigin(Document doc, TransactionOptions transactionOptions = TransactionOptions.SingleTransaction, LogOptions logOptions = LogOptions.DoNotLog, LogFlowOptions logFlowOptions = LogFlowOptions.LogAll) : base(doc, transactionOptions, logOptions, logFlowOptions)
 	{
 		Add(CreatePoints);
-		Add(CreateSphere);
-		Add(CreateMaterialForEachPoint);
+		Add(CreateSpheresSolid);
+		Add(CreateMaterialForEachPoint, ItemTransactionOptions.RequiresTransaction);
 		Add(CollectCreatedMaterialsForStyling);
 		Add(CreateColorForEachPoint);
-		Add(RandomlyStyleMaterials);
-		Add(CreateDirectShapes);
-		Add(PaintDirectShapes);
+		Add(RandomlyStyleMaterials, ItemTransactionOptions.RequiresTransaction);
+		Add(CreateDirectShapes, ItemTransactionOptions.RequiresTransaction);
+		Add(PaintDirectShapes, ItemTransactionOptions.RequiresTransaction);
 	}
 
 	void CreatePoints()
@@ -19,7 +19,7 @@ public class CreateSphereOnInternalOrigin : WorkflowBase<CreateSphereOnInternalO
 		Dto.SpheresPoints = RevitXYZ.FromXYDisplacementMatrix(10, 20);
 	}
 
-	void CreateSphere()
+	void CreateSpheresSolid()
 	{
 		var result = new List<Solid>();
 
@@ -74,7 +74,9 @@ public class CreateSphereOnInternalOrigin : WorkflowBase<CreateSphereOnInternalO
 		for (int i = 0; i < Dto.SpheresMaterialsIds.Count; i++)
 		{
 			ElementId item = Dto.SpheresMaterialsIds[i];
+
 			Material material = Dto.SpheresMaterials[i];
+
 			Color color = Dto.SpheresColors[i];
 
 			result.Add(RevitMaterial.SetColorAndTransparencyOnNewTransaction(Sm, Doc, item, color, 0));
@@ -101,7 +103,7 @@ public class CreateSphereOnInternalOrigin : WorkflowBase<CreateSphereOnInternalO
 
 			Material material = Dto.SpheresMaterials[i];
 
-			RevitDirectShape.PaintShapeFaces(Sm, Doc, item, material);
+			RevitDirectShape.PaintShapeFacesOnNewTransaction(Sm, Doc, item, material);
 		}
 	}
 }
