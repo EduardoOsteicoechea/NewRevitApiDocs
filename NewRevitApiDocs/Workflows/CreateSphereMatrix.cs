@@ -2,16 +2,31 @@
 
 public class CreateSphereMatrix : WorkflowBase<CreateSphereMatrixDto>
 {
-	public CreateSphereMatrix(Document doc, TransactionOptions transactionOptions = TransactionOptions.SingleTransaction, LogOptions logOptions = LogOptions.DoNotLog, LogFlowOptions logFlowOptions = LogFlowOptions.LogAll) : base(doc, transactionOptions, logOptions, logFlowOptions)
+	public CreateSphereMatrix
+	(
+		Document doc,
+		IDTOBase dto,
+		IScriptManager scriptManager,
+		IActionManager actionManager,
+		ITransactionManager transactionManager
+	)
+		: base
+	(
+		doc,
+		dto,
+		scriptManager,
+		actionManager,
+		transactionManager
+	)
 	{
 		Add(CreatePoints);
 		Add(CreateSolids);
-		Add(CreateMaterialForEachPoint, ItemTransactionOptions.RequiresTransaction);
+		Add(CreateMaterialForEachPoint);
 		Add(CollectCreatedMaterialsForStyling);
 		Add(CreateColorForEachPoint);
-		Add(RandomlyStyleMaterials, ItemTransactionOptions.RequiresTransaction);
-		Add(CreateDirectShapes, ItemTransactionOptions.RequiresTransaction);
-		Add(PaintDirectShapes, ItemTransactionOptions.RequiresTransaction);
+		Add(RandomlyStyleMaterials);
+		Add(CreateDirectShapes);
+		Add(PaintDirectShapes);
 	}
 
 	void CreatePoints()

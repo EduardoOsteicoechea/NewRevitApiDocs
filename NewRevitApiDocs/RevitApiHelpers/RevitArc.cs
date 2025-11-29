@@ -4,7 +4,7 @@ public static class RevitArc
 {
 	public static Arc ByPointAndRadiusOnXYPlane
 	(
-		ScriptManager scriptManager,
+		IScriptManager scriptManager,
 		XYZ point,
 		double radius
 	)

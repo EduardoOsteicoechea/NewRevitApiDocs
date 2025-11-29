@@ -1,26 +1,34 @@
 ﻿using Autodesk.Revit.DB;
+using System.Reflection;
 
 public static class RevitDirectShape
 {
 	public static DirectShape SphereFromSphereSolidOnNewTransaction
 	(
-		ScriptManager scriptManager,
+		IScriptManager scriptManager,
 		Document doc,
 		Solid solid
 	)
 	{
 		DirectShape directShape = null;
 
-		ElementId genericModelsCategoryId = RevitCategory.GetGenericModelCategoryId(scriptManager, doc);
+		using (Transaction transaction = new Transaction(doc, MethodBase.GetCurrentMethod().Name))
+		{
+			transaction.Start();
 
-		directShape = SphereFromSphereSolid(scriptManager, doc, genericModelsCategoryId, solid);
+			ElementId genericModelsCategoryId = RevitCategory.GetGenericModelCategoryId(scriptManager, doc);
+
+			directShape = SphereFromSphereSolid(scriptManager, doc, genericModelsCategoryId, solid);
+
+			transaction.Commit();
+		}
 
 		return directShape;
 	}
 
 	public static DirectShape SphereFromSphereSolidOnExistingTransaction
 	(
-		ScriptManager scriptManager,
+		IScriptManager scriptManager,
 		Document doc,
 		Solid solid
 	)
@@ -32,7 +40,7 @@ public static class RevitDirectShape
 
 	public static DirectShape SphereFromSphereSolid
 	(
-		ScriptManager scriptManager,
+		IScriptManager scriptManager,
 		Document doc,
 		ElementId genericModelsCategoryId,
 		Solid solid
@@ -48,7 +56,7 @@ public static class RevitDirectShape
 		}
 		catch (Exception ex)
 		{
-			scriptManager.SetError($"{ex.Message}\n{ex.StackTrace}");
+			scriptManager.LogError($"{ex.Message}\n{ex.StackTrace}");
 		}
 
 		if (sphereCenter is null)
@@ -66,7 +74,7 @@ public static class RevitDirectShape
 		}
 		catch (Exception ex)
 		{
-			scriptManager.SetError($"{ex.Message}\n{ex.StackTrace}");
+			scriptManager.LogError($"{ex.Message}\n{ex.StackTrace}");
 		}
 
 		return directShape;
@@ -74,32 +82,39 @@ public static class RevitDirectShape
 
 	public static void PaintShapeFacesOnNewTransaction
 	(
-		ScriptManager scriptManager,
+		IScriptManager scriptManager,
 		Document doc,
 		DirectShape directShape,
 		Material material
 	)
 	{
-		doc.Regenerate();
-
-		GeometryElement geometryElement = directShape.get_Geometry(RevitGeometryOptions.Full());
-
-		foreach (GeometryObject geometryObject in geometryElement)
+		using (Transaction transaction = new Transaction(doc, MethodBase.GetCurrentMethod().Name))
 		{
-			if (geometryObject is Solid solid)
+			transaction.Start();
+
+			doc.Regenerate();
+
+			GeometryElement geometryElement = directShape.get_Geometry(RevitGeometryOptions.Full());
+
+			foreach (GeometryObject geometryObject in geometryElement)
 			{
-				foreach (Face face in solid.Faces)
+				if (geometryObject is Solid solid)
 				{
-					try
+					foreach (Face face in solid.Faces)
 					{
-						doc.Paint(directShape.Id, face, material.Id);
-					}
-					catch (Exception ex)
-					{
-						scriptManager.SetError($"{ex.Message}\n{ex.StackTrace}");
+						try
+						{
+							doc.Paint(directShape.Id, face, material.Id);
+						}
+						catch (Exception ex)
+						{
+							scriptManager.LogError($"{ex.Message}\n{ex.StackTrace}");
+						}
 					}
 				}
 			}
+
+			transaction.Commit();
 		}
 	}
 }

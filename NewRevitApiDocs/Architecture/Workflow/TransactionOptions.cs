@@ -4,9 +4,3 @@
 	SingleTransaction = 1,
 	MultipleTransactions = 2
 }
-
-public enum ItemTransactionOptions
-{
-	Transactionless = 0,
-	RequiresTransaction = 1
-}

@@ -1,4 +1,4 @@
-﻿public enum LogFlowOptions
+﻿public enum LogOptions
 {
 	LogNone = 0,
 	LogAll = 1,

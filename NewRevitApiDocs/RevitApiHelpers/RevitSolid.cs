@@ -4,7 +4,7 @@ public static class RevitSolid
 {
 	public static Solid SphereFromXYZAndRadius
 	(
-		ScriptManager scriptManager,
+		IScriptManager scriptManager,
 		Document doc,
 		XYZ point,
 		double radius
@@ -41,7 +41,7 @@ public static class RevitSolid
 
 	public static Solid FromLineCurveLoopAndLength
 	(
-		ScriptManager scriptManager,
+		IScriptManager scriptManager,
 		Line line,
 		CurveLoop curveLoop,
 		double lengthOnInternalUnits

@@ -4,7 +4,7 @@ public static class RevitCategory
 {
 	public static ElementId GetGenericModelCategoryId
 	(
-		ScriptManager scriptManager,
+		IScriptManager scriptManager,
 		Document doc
 	)
 	{

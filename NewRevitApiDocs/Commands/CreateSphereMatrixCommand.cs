@@ -1,21 +1,63 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using System.Reflection;
 
 [Transaction(TransactionMode.Manual)]
 public class CreateSphereMatrixCommand : IExternalCommand
 {
 	public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
 	{
-		var workflow = new CreateSphereMatrix(
-			commandData.Application.ActiveUIDocument.Document, 
-			TransactionOptions.SingleTransaction, 
-			LogOptions.FullLog,
-			LogFlowOptions.LogFinalOnly
+		var doc = commandData.Application.ActiveUIDocument.Document;
+
+		var logger = new Logger(LogOptions.LogFinalOnly);
+
+		var timer = new ExecutionTimer();
+
+		var filePrinter = new FilePrinter(
+			Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+			$"{doc.Title}_{MethodBase.GetCurrentMethod().DeclaringType.Name}.txt"
 			);
 
-		workflow.Run();
+		var scriptManager = new ScriptManager(logger, timer, filePrinter);
 
-		return Result.Succeeded;
+		var sharedDto = new CreateSphereMatrixDto();
+
+		var actionManager = new ActionManager(
+			scriptManager,
+			sharedDto
+			);
+
+		var transactionManager = new TransactionManager(
+			doc,
+			scriptManager,
+			actionManager,
+			TransactionOptions.MultipleTransactions
+			);
+
+		var workflow = new CreateSphereMatrix(
+			doc,
+			sharedDto,
+			scriptManager,
+			actionManager,
+			transactionManager
+			);
+
+		try
+		{
+			workflow.Run();
+
+			return Result.Succeeded;
+		}
+		catch (Exception ex)
+		{
+			scriptManager.LogError($"{ex.Message}\n{ex.StackTrace}");
+
+			return Result.Failed;
+		}
+		finally
+		{
+			scriptManager.Finish();
+		}
 	}
 }

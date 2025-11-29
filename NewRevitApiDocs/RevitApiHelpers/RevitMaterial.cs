@@ -1,10 +1,11 @@
 ﻿using Autodesk.Revit.DB;
+using System.Reflection;
 
 public static class RevitMaterial
 {
 	public static ElementId DefaultOnNewTransaction
 	(
-		ScriptManager scriptManager,
+		IScriptManager scriptManager,
 		Document doc,
 		string materialName,
 		int transparency
@@ -12,14 +13,21 @@ public static class RevitMaterial
 	{
 		ElementId result = null;
 
-		result = Material.Create(doc, materialName);
+		using (Transaction transaction = new Transaction(doc, MethodBase.GetCurrentMethod().Name))
+		{
+			transaction.Start();
+
+			result = Material.Create(doc, materialName);
+
+			transaction.Commit();
+		}
 
 		return result;
 	}
 
 	public static Material SetColorAndTransparencyOnNewTransaction
 	(
-		ScriptManager scriptManager,
+		IScriptManager scriptManager,
 		Document doc,
 		ElementId materialId,
 		Autodesk.Revit.DB.Color color,
@@ -28,13 +36,20 @@ public static class RevitMaterial
 	{
 		Material result = null;
 
-		result = doc.GetElement(materialId) as Material;
-
-		if (result != null)
+		using (Transaction transaction = new Transaction(doc, MethodBase.GetCurrentMethod().Name))
 		{
-			result.Color = color;
+			transaction.Start();
 
-			result.Transparency = transparency;
+			result = doc.GetElement(materialId) as Material;
+
+			if (result != null)
+			{
+				result.Color = color;
+
+				result.Transparency = transparency;
+			}
+
+			transaction.Commit();
 		}
 
 		return result;

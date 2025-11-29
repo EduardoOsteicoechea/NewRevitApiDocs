@@ -1,59 +1,73 @@
-﻿using System.Diagnostics;
-using System.Globalization;
-using System.Text;
-
-public class ScriptManager : IDisposable
+﻿public class ScriptManager: IScriptManager
 {
-	public StringBuilder Logger { get; } = LogService.Logger();
-	public HelperShapesOptions HelperShapesOptions { get; } = HelperShapesOptions.ModelInRevit;
-	public double PreviousTime { get; set; } = 0;
-	public double CurrentTime { get; set; } = 0;
-	public Dictionary<string, double> StepsTiming { get; set; } = new Dictionary<string, double>();
-	public Stopwatch Stopwatch { get; set; } = Stopwatch.StartNew();
+	public ILogger Logger { get; init; }
+	public IExecutionTimer Timer { get; init; }
+	public IFilePrinter FilePrinter { get; init; }
+	public LogOptions LogOptions { get; init; }
+	public bool IsLoggingEnabled { get; init; }
 
-	public void Set(string stepName, dynamic stepValue = null)
+	public ScriptManager
+	(
+		ILogger logger,
+		IExecutionTimer timer,
+		IFilePrinter filePrinter,
+		LogOptions logOptions = LogOptions.LogNone
+	) 
 	{
-		var stepTimmingAsString = SetStepTiming(stepName);
+		Logger = logger;
 
-		var valueString = stepValue is null ? "" : $" |\n{stepValue.ToString()}";
+		Timer = timer;
 
-		Logger?.AppendLine($"ACTION | N°: {StepsTiming.Count} | MS: {stepTimmingAsString} | NAME: {stepName}{valueString}");
-		Logger?.AppendLine();
+		FilePrinter = filePrinter;
+
+		LogOptions = logOptions;
+
+		IsLoggingEnabled = LogOptions.Equals(LogOptions.LogNone);
 	}
 
-	public void SetError(string value)
+	public void LogAction(string stepName, string stepValue)
 	{
-		Logger?.AppendLine($"ERROR: {value}");
-		Logger?.AppendLine();
+		Timer.MarkStep();
+
+		if (IsLoggingEnabled)
+		{
+			var actionNumber = Timer.StepCount;
+
+			var currentStepTiming = Timer.CurrentStepDuration;
+
+			Logger.Action(stepName, actionNumber, currentStepTiming, stepValue);
+		}
 	}
 
-	private string SetStepTiming(string stepName)
+	public void LogError(string value)
 	{
-		CurrentTime = Stopwatch.ElapsedMilliseconds;
-
-		var stepTimming = CurrentTime - PreviousTime;
-
-		StepsTiming.Add($"{stepName}{Guid.NewGuid()}", stepTimming);
-
-		PreviousTime = CurrentTime;
-
-		return Math.Round(stepTimming, 3).ToString(CultureInfo.InvariantCulture).PadLeft(8, '0');
+		if (IsLoggingEnabled)
+		{
+			Logger.Error(value);
+		}
 	}
 
-	public void Log(string value)
+	public void LogInfo(string value)
 	{
-		Logger?.AppendLine($"[NOTE]");
-		Logger?.AppendLine($"{value}");
+		if (IsLoggingEnabled)
+		{
+			Logger.Info(value);
+		}
 	}
 
 	public void Finish()
 	{
-		Logger?.AppendLine();
-		Logger?.AppendLine($"TOTAL_MS: {Stopwatch.ElapsedMilliseconds.ToString(CultureInfo.InvariantCulture)}");
-	}
+		Timer.Finish();
 
-	public void Dispose()
-	{
-		Stopwatch.Stop();
+		if (IsLoggingEnabled)
+		{
+			var totalTime = Timer.TotalMilliseconds;
+
+			Logger.Finish(totalTime);
+
+			var logData = Logger.Print();
+
+			FilePrinter.Print(logData);
+		}
 	}
 }
