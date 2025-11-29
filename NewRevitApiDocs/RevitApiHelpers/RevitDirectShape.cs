@@ -1,12 +1,10 @@
 ﻿using Autodesk.Revit.DB;
-using NewRevitApiDocs;
-
 
 public static class RevitDirectShape
 {
 	public static DirectShape SphereFromSphereSolidOnNewTransaction
 	(
-		IScriptManager scriptManager,
+		ScriptManager scriptManager,
 		Document doc,
 		Solid solid
 	)
@@ -38,7 +36,7 @@ public static class RevitDirectShape
 
 	public static DirectShape SphereFromSphereSolidOnExistingTransaction
 	(
-		IScriptManager scriptManager,
+		ScriptManager scriptManager,
 		Document doc,
 		Solid solid
 	)
@@ -50,7 +48,7 @@ public static class RevitDirectShape
 
 	public static DirectShape SphereFromSphereSolid
 	(
-		IScriptManager scriptManager,
+		ScriptManager scriptManager,
 		Document doc,
 		ElementId genericModelsCategoryId,
 		Solid solid
@@ -92,7 +90,7 @@ public static class RevitDirectShape
 
 	public static void PaintShapeFaces
 	(
-		IScriptManager scriptManager,
+		ScriptManager scriptManager,
 		Document doc,
 		DirectShape directShape,
 		Material material

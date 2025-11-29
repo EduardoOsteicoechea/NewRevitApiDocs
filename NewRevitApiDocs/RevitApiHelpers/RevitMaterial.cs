@@ -1,12 +1,10 @@
 ﻿using Autodesk.Revit.DB;
-using Autodesk.Revit.UI;
-using System.Text;
 
 public static class RevitMaterial
 {
 	public static ElementId DefaultOnNewTransaction
 	(
-		IScriptManager scriptManager,
+		ScriptManager scriptManager,
 		Document doc,
 		string materialName,
 		int transparency
@@ -37,7 +35,7 @@ public static class RevitMaterial
 
 	public static Material SetColorAndTransparencyOnNewTransaction
 	(
-		IScriptManager scriptManager,
+		ScriptManager scriptManager,
 		Document doc,
 		ElementId materialId,
 		Autodesk.Revit.DB.Color color,

@@ -1,46 +1,42 @@
 ﻿using Autodesk.Revit.DB;
-using System.Text;
 
-namespace NewRevitApiDocs
+public static class RevitSolid
 {
-	public static class RevitSolid
+	public static Solid SphereFromXYZAndRadius
+	(
+		ScriptManager scriptManager,
+		Document doc,
+		XYZ point,
+		double radius
+	)
 	{
-		public static Solid SphereFromXYZAndRadius
-		(
-			IScriptManager scriptManager,
-			Document doc,
-			XYZ point,
-			double radius
-		)
-		{
-			Solid result = null;
-			
-			XYZ center = point;
-			XYZ startPoint = center + new XYZ(radius, 0, 0);
-			XYZ endPoint = center + new XYZ(-radius, 0, 0);
-			XYZ pointOnArc = center + new XYZ(0, radius, 0);
+		Solid result = null;
 
-			Arc arc = RevitArc.ByPointAndRadiusOnXYPlane(scriptManager, point, radius);
+		XYZ center = point;
+		XYZ startPoint = center + new XYZ(radius, 0, 0);
+		XYZ endPoint = center + new XYZ(-radius, 0, 0);
+		XYZ pointOnArc = center + new XYZ(0, radius, 0);
 
-			Line line = Autodesk.Revit.DB.Line.CreateBound(endPoint, startPoint);
+		Arc arc = RevitArc.ByPointAndRadiusOnXYPlane(scriptManager, point, radius);
 
-			CurveLoop curveLoop = new CurveLoop();
-			curveLoop.Append(arc);
-			curveLoop.Append(line);
+		Line line = Autodesk.Revit.DB.Line.CreateBound(endPoint, startPoint);
 
-			Frame frame = RevitFrame.ZOnX(point);
+		CurveLoop curveLoop = new CurveLoop();
+		curveLoop.Append(arc);
+		curveLoop.Append(line);
 
-			List<CurveLoop> curveLoops = new List<CurveLoop> { curveLoop };
+		Frame frame = RevitFrame.ZOnX(point);
 
-			result = GeometryCreationUtilities.CreateRevolvedGeometry(
-				frame,
-				curveLoops,
-				0,
-				2 * Math.PI
-			);
+		List<CurveLoop> curveLoops = new List<CurveLoop> { curveLoop };
 
-			return result;
-		}
+		result = GeometryCreationUtilities.CreateRevolvedGeometry(
+			frame,
+			curveLoops,
+			0,
+			2 * Math.PI
+		);
 
+		return result;
 	}
+
 }

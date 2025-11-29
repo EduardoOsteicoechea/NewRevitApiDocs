@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Text;
 
-public class ScriptManager : IScriptManager
+public class ScriptManager : IDisposable
 {
 	public StringBuilder Logger { get; } = LogService.Logger();
 	public HelperShapesOptions HelperShapesOptions { get; } = HelperShapesOptions.ModelInRevit;
@@ -11,66 +11,44 @@ public class ScriptManager : IScriptManager
 	public Dictionary<string, double> StepsTiming { get; set; } = new Dictionary<string, double>();
 	public Stopwatch Stopwatch { get; set; } = Stopwatch.StartNew();
 
-	public void SetSuccess(string stepName, dynamic stepValue = null)
+	public void Set(string stepName, dynamic stepValue = null)
 	{
-		Logger?.AppendLine(FormatMessage(stepName, stepValue, SetTimming(stepName), ScriptManagerMessageFormattingOptions.Success));
+		var stepTimmingAsString = SetStepTiming(stepName);
+
+		var valueString = stepValue is null ? "" : $" |\n{stepValue.ToString()}";
+
+		Logger?.AppendLine($"ACTION | N°: {StepsTiming.Count} | MS: {stepTimmingAsString} | NAME: {stepName}{valueString}");
+		Logger?.AppendLine();
 	}
 
-	public void SetWarning(string stepName, dynamic stepValue = null)
+	public void SetError(string value)
 	{
-		Logger?.AppendLine(FormatMessage(stepName, stepValue, SetTimming(stepName), ScriptManagerMessageFormattingOptions.Warning));
+		Logger?.AppendLine($"ERROR: {value}");
+		Logger?.AppendLine();
 	}
 
-	public void SetError(string stepName, dynamic stepValue = null)
-	{
-		Logger?.AppendLine(FormatMessage(stepName, stepValue, SetTimming(stepName), ScriptManagerMessageFormattingOptions.Error));
-	}
-
-	public string SetTimming(string stepName)
+	private string SetStepTiming(string stepName)
 	{
 		CurrentTime = Stopwatch.ElapsedMilliseconds;
 
-		double stepTimming = CurrentTime - PreviousTime;
+		var stepTimming = CurrentTime - PreviousTime;
 
-		StepsTiming.Add($"{stepName}_{Guid.NewGuid()}", stepTimming);
+		StepsTiming.Add($"{stepName}{Guid.NewGuid()}", stepTimming);
 
 		PreviousTime = CurrentTime;
 
 		return Math.Round(stepTimming, 3).ToString(CultureInfo.InvariantCulture).PadLeft(8, '0');
 	}
 
-	public string FormatMessage(string stepName, dynamic stepValue, string timingValue, ScriptManagerMessageFormattingOptions scriptManagerMessageFormattingOptions)
+	public void Log(string value)
 	{
-		var a = new StringBuilder();
-
-		var valueString = stepValue is null ? "" : $" |\n{stepValue.ToString()}";
-
-		a.AppendLine($"[{DetermineMessageTypeString(scriptManagerMessageFormattingOptions)}]");
-		a.AppendLine("{");
-		a.AppendLine($"{LogService.Tab1}N°: {StepsTiming.Count} | MS: {timingValue} | NAME: {stepName}{valueString}");
-		a.AppendLine("}");
-
-		return a.ToString();
-	}
-
-	public string DetermineMessageTypeString(ScriptManagerMessageFormattingOptions scriptManagerMessageFormattingOptions)
-	{
-		if (scriptManagerMessageFormattingOptions.Equals(ScriptManagerMessageFormattingOptions.Success))
-		{
-			return "SUCCESS";
-		}
-		else if (scriptManagerMessageFormattingOptions.Equals(ScriptManagerMessageFormattingOptions.Warning))
-		{
-			return "WARNING";
-		}
-		else
-		{
-			return "ERROR";
-		}
+		Logger?.AppendLine($"[NOTE]");
+		Logger?.AppendLine($"{value}");
 	}
 
 	public void Finish()
 	{
+		Logger?.AppendLine();
 		Logger?.AppendLine($"TOTAL_MS: {Stopwatch.ElapsedMilliseconds.ToString(CultureInfo.InvariantCulture)}");
 	}
 
